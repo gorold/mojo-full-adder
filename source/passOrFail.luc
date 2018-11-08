@@ -1,0 +1,13 @@
+module passOrFail ( 
+    input checker[2],
+    input circuit[2],
+    output out[4]
+  ) {
+
+  always {
+    if (checker == circuit)
+      out = 4d8;
+    else 
+      out = 4d9;
+  }
+}

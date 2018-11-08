@@ -1,0 +1,27 @@
+module multi_seg #( // this module is an exact copy of multi_seven_seg, found on page 89
+// ultimately, all you need to know is that it outputs the sel and seg of io_led as 4-bit and 8-bits respectively
+    DIGITS = 4 : DIGITS > 0, // Parameter DIGITS = DEFAULT_VALUE of 4; subject to constraint that DIGITS > 0
+    DIV = 16 : DIV >= 0 // this DIV parameter is for the counter. It's a default value that allows the LEDs to look good
+  )(
+    input clk, // clock
+    input rst, // reset
+    input values [DIGITS][4], // values to show
+    input decimal [DIGITS], // decimal points
+    output seg [8], // LED segments
+    output sel [DIGITS] // Digit select
+  ) {
+  // number of bits required to store DIGITS-1
+  const DIGIT_BITS = $clog2(DIGITS);
+  .clk(clk), .rst(rst) 
+  {
+    counter ctr (#DIV(DIV), #SIZE(DIGIT_BITS), #TOP(DIGITS-1));
+  }
+  digit_lut seg_dec; // segment decoder, takes a decimal digit and outputs the io_seg representation
+  decoder digit_dec (#WIDTH(DIGIT_BITS)); // digit decoder
+  always {
+    seg_dec.value = values[ctr.value]; // select value for active digit
+    seg = c{decimal[ctr.value], seg_dec.segs}; // output the decoded value
+    digit_dec.in = ctr.value; // decode active digit to one-hot
+    sel = digit_dec.out; // output the active digit
+   }
+}

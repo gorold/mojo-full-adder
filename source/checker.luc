@@ -1,0 +1,124 @@
+module checker (
+    input clk,  // clock
+    input rst,  // reset
+    input rst2, // reset for timer
+    output checkingNum [4], 
+    output result [2],
+    
+    input start,
+    input next_test,
+    input auto 
+  ) 
+{
+  
+  .clk(clk) 
+  {
+    .rst(rst) 
+    {
+      fsm state = {IDLE, ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, AUTO};
+   //   fsm state2 = {ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN};
+    }
+    .rst(rst2)
+    {
+    dff counter[25]; // not necessary for counter to be connected to both clk and rst
+            fsm state2 = {ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN};
+    }
+  }
+  choose_lut lut_checker; // instantiate choose_lut module
+  var check;
+            
+  always 
+  {
+    checkingNum = check; 
+    lut_checker.in = check;
+    result = lut_checker.out;
+    
+  case (state.q) {  
+      state.IDLE:
+          check = 4b1111;
+          if (auto)
+            state.d = state.AUTO;
+          if (start)
+            state.d = state.ZERO;
+          
+      state.ZERO:
+        check = 4b000;
+        if (next_test)
+          state.d = state.ONE;
+          
+      state.ONE:
+        check = 4b001;
+        if (next_test)
+          state.d = state.TWO;
+          
+      state.TWO:
+        check = 4b010;
+        if (next_test)
+          state.d = state.THREE;
+          
+      state.THREE:
+        check = 4b100;
+        if (next_test)
+          state.d = state.FOUR;
+          
+      state.FOUR:
+        check = 4b011;
+        if (next_test)
+          state.d = state.FIVE;
+          
+      state.FIVE:
+        check = 4b101;
+        if (next_test)
+          state.d = state.SIX;
+          
+      state.SIX:
+        check = 4b110;
+        if (next_test)
+          state.d = state.SEVEN;
+          
+      state.SEVEN:
+        check = 4b111;
+        if (next_test)
+          state.d = state.IDLE;
+       
+        
+      state.AUTO:
+        if (counter.q[24:0] ==0) {
+           case (state2.q) {
+        state2.ZERO:
+          check = 4b000;
+            state2.d = state2.ONE;
+            
+        state2.ONE:
+          check = 4b001;
+            state2.d = state2.TWO;
+            
+        state2.TWO:
+          check = 4b010;
+            state2.d = state2.THREE;
+            
+        state2.THREE:
+          check = 4b100;
+            state2.d = state2.FOUR;
+            
+        state2.FOUR:
+          check = 4b011;
+            state2.d = state2.FIVE;
+            
+        state2.FIVE:
+          check = 4b101;
+            state2.d = state2.SIX;
+            
+        state2.SIX:
+          check = 4b110;
+            state2.d = state2.SEVEN;
+            
+        state2.SEVEN:
+          check = 4b111;
+            state2.d = state2.ONE;     
+          }  // end case state2
+       } // end if counter
+        counter.d = counter.q + 1;
+    } 
+  }
+}

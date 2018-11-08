@@ -1,0 +1,19 @@
+Release 14.7 Drc P.20131013 (nt)
+Copyright (c) 1995-2013 Xilinx, Inc.  All rights reserved.
+
+Thu Oct 04 22:16:13 2018
+
+drc -z mojo_top_0_routed.ncd mojo_top_0.pcf
+
+WARNING:PhysDesignRules:372 - Gated clock. Clock net
+   checker/M_state_q[3]_GND_38_o_Mux_80_o is sourced by a combinatorial pin.
+   This is not good design practice. Use the CE pin to control the loading of
+   data into the flip-flop.
+WARNING:PhysDesignRules:781 - PULLDOWN on an active net. PULLDOWN of comp
+   real_output[0]_PULLDOWN is set but the tri state is not configured. 
+WARNING:PhysDesignRules:781 - PULLDOWN on an active net. PULLDOWN of comp
+   real_output[1]_PULLDOWN is set but the tri state is not configured. 
+WARNING:PhysDesignRules:781 - PULLDOWN on an active net. PULLDOWN of comp
+   real_output[2]_PULLDOWN is set but the tri state is not configured. 
+DRC detected 0 errors and 4 warnings.  Please see the previously displayed
+individual error or warning messages for more details.

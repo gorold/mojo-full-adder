@@ -1,0 +1,96 @@
+module mojo_top (
+    // port list
+    input clk,              // 50MHz clock
+    input rst_n,            // reset button (active low)
+    output led [8],         // 8 user controllable LEDs
+    input cclk,             // configuration clock, AVR ready when high
+    output spi_miso,        // AVR SPI MISO
+    input spi_ss,           // AVR SPI Slave Select
+    input spi_mosi,         // AVR SPI MOSI
+    input spi_sck,          // AVR SPI Clock
+    output spi_channel [4], // AVR general purpose pins (used by default to select ADC channel)
+    input avr_tx,           // AVR TX (FPGA RX)
+    output avr_rx,          // AVR RX (FPGA TX)
+    input avr_rx_busy,      // AVR RX buffer full
+    output io_led [3][8],   // LEDs on IO Shield
+    output io_seg [8],      // 7-segment LEDs on IO Shield
+    output io_sel [4],      // Digit select on IO Shield
+    input io_button [5],    // 5 buttons on IO Shield
+    input io_dip [3][8],     // DIP switches on IO Shield
+    
+    output real_output[3], // 51 goes to dip 1, 41 goes to dip 2, 35 goes to dip 3
+    input real_input[2]  // Pin 30 goes to carry, Pin 33 goes to sum
+  ) {
+  
+  sig rst;                  // reset signal
+  
+  .clk(clk) 
+  { //.port_name(signal_name){} connects clk signal to clk port. A port is just an input, output, or inout of a module.
+    // The reset conditioner is used to synchronize the reset signal to the FPGA
+    // clock. This ensures the entire FPGA comes out of reset at the same time.
+    reset_conditioner reset_cond;
+    
+    button_conditioner start_button;
+    button_conditioner next_test_button;
+    button_conditioner auto_button;
+    
+    edge_detector next_test_edge (#RISE(1), #FALL(0));
+    
+    .rst(rst) // we usually nest the reset to the clock so that everything is synchronized
+    {
+      checker checker; // instantiate the fsm called checker
+      multi_seg seg_display; // instantiate the multi_seg, which is basically the io_seg
+    }
+  }
+  
+  passOrFail passOrFail;  // the job of this module is to just check if checker and circuit are equal, if they are, output a "P", otherwise, output a "F"
+  
+  always 
+  {
+    reset_cond.in = ~rst_n; // input raw inverted reset signal
+    rst = reset_cond.out;   // conditioned reset
+    
+    led = 8h00;             // turn LEDs off
+    spi_miso = bz;          // not using SPI
+    spi_channel = bzzzz;    // not using flags
+    avr_rx = bz;            // not using serial port
+    
+    io_led = 3x{{8h00}};    // turn LEDs off
+    io_seg = 8hff;          // turn segments off
+    io_sel = 4hf;           // select no digits
+    
+    start_button.in = io_button[1];
+    next_test_button.in = io_button[4];
+    auto_button.in = io_button[0];
+    
+    next_test_edge.in = next_test_button.out;
+    
+    checker.start = start_button.out;
+    checker.next_test = next_test_edge.out;
+    checker.rst2 = auto_button.out;
+    checker.auto = auto_button.out;
+     
+    real_output = checker.checkingNum; // passing the current values that the checker is checking for into the real circuit
+    
+    passOrFail.checker = checker.result; // input the checker's result into the passOrFail module
+    passOrFail.circuit = real_input; // input the real circuit's result into the pass or fail module
+    
+    
+    if (checker.checkingNum == 4b1111) {
+      real_output = 3b0;
+      seg_display.values = {4d10, 4d10, 4d10, 4d10}; // display all the centre lines in io_seg
+    }
+    else
+      seg_display.values = {passOrFail.out, c{3b0, checker.checkingNum[2]},  // the first display shows whether the two results match
+         c{3b0, checker.checkingNum[1]}, c{3b0, checker.checkingNum[0]}};  // the subsequent displays show the current values that the checker is checking
+
+    seg_display.decimal = 4b0000; // no decimals
+    
+    io_seg = ~seg_display.seg;  // invert the output because the display is low at 1 and high at 0
+    io_sel = ~seg_display.sel;  // invert the output
+    
+    io_led[0][1:0] = checker.result; // io_led are the 3 sets of 8 LEDs in a row. On the 0th set of LEDs, it is displaying
+    io_led[1][1:0] = real_input;     // the onebfa_lut/fake_lut's output and on the 1st set of LEDs, it is displaying the real circuit results
+    
+  }
+}

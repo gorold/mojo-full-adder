@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<ProcessHandle Version="1" Minor="0">
+    <Process Command="ngdbuild" Owner="wooge" Host="DESKTOP-RBFOL11" Pid="17752">
+    </Process>
+</ProcessHandle>

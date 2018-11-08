@@ -1,0 +1,6 @@
+NET "real_output<0>" LOC = P51 | IOSTANDARD = LVTTL | PULLDOWN;
+NET "real_output<1>" LOC = P41 | IOSTANDARD = LVTTL | PULLDOWN;
+NET "real_output<2>" LOC = P35 | IOSTANDARD = LVTTL | PULLDOWN;
+
+NET "real_input<0>" LOC = P33 | IOSTANDARD = LVTTL; 
+NET "real_input<1>" LOC = P30 | IOSTANDARD = LVTTL; 

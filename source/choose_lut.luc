@@ -1,0 +1,21 @@
+module choose_lut (
+    input in [4], // this fella is passed into this module with the name "check" from the checker module
+    output out[2]
+  ) {
+  
+  onebfa_lut onebfa_lut; // instantiate the onebfa_lut 
+  fake_lut fake_lut;  // instantiate the fake_lut
+  var table;
+  always 
+  {
+    onebfa_lut.in = in;
+    fake_lut.in = in; 
+    table = 0;
+    case (table) 
+    {
+      0: out = onebfa_lut.out;
+      1: out = fake_lut.out;
+      default: out = onebfa_lut.out;
+    }
+  }
+}
